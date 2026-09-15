@@ -1,0 +1,24 @@
+#ddev-generated
+services:
+  varnish:
+    container_name: ddev-${DDEV_SITENAME}-varnish
+    image: ${VARNISH_DOCKER_IMAGE:-varnish:6.0}
+    # These labels ensure this service is discoverable by ddev.
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: ${DDEV_APPROOT}
+    environment:
+      - VIRTUAL_HOST=${DDEV_HOSTNAME}
+      - HTTP_EXPOSE=${DDEV_ROUTER_HTTP_PORT}:80
+      - HTTPS_EXPOSE=${DDEV_ROUTER_HTTPS_PORT}:80
+    volumes:
+      # This exposes a mount to the host system `.ddev/varnish` directory where
+      # your default.vcl should be.
+      - "./varnish:/etc/varnish"
+      - ".:/mnt/ddev_config"
+      - "ddev-global-cache:/mnt/ddev-global-cache"
+    depends_on:
+      - web
+    entrypoint: docker-varnish-entrypoint ${VARNISH_VARNISHD_PARAMS:--p http_max_hdr=1000 -p http_resp_hdr_len=1M -p http_resp_size=2M -p workspace_backend=3M -p workspace_client=3M}
+    x-ddev:
+      ssh-shell: bash

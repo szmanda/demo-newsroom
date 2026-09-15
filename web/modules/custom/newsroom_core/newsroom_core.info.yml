@@ -1,0 +1,10 @@
+name: 'Newsroom Core & CLI Utilities'
+type: module
+description: 'Core developer commands, seeders, and utilities for the PAP Newsroom platform.'
+core_version_requirement: ^10 || ^11
+package: 'Newsroom'
+dependencies:
+  - newsroom_wire:newsroom_wire
+  - newsroom_api:newsroom_api
+  - newsroom_syndication:newsroom_syndication
+  - newsroom_security:newsroom_security

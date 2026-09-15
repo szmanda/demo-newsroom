@@ -1,0 +1,13 @@
+name: 'Newsroom Wire'
+type: module
+description: 'High-throughput wire dispatch data model, taxonomies, and editorial state machine for PAP Newsroom.'
+core_version_requirement: ^10 || ^11
+package: 'Newsroom'
+dependencies:
+  - drupal:node
+  - drupal:taxonomy
+  - drupal:text
+  - drupal:options
+  - drupal:datetime
+  - drupal:workflows
+  - drupal:content_moderation

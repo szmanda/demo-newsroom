@@ -1,0 +1,7 @@
+name: 'Newsroom Security & Audit Log'
+type: module
+description: 'Tamper-evident cryptographic audit logging for wire dispatches, moderation transitions, and editorial integrity.'
+core_version_requirement: ^10 || ^11
+package: 'Newsroom'
+dependencies:
+  - newsroom_wire:newsroom_wire

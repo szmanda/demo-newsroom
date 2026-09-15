@@ -1,0 +1,26 @@
+# Ignore vendor and core assets
+/vendor/
+/web/core
+/web/modules/contrib
+/web/themes/contrib
+/web/profiles/contrib
+/web/libraries
+
+# Ignore site configuration and files
+/web/sites/*/files
+/web/sites/*/settings.local.php
+/web/sites/*/services.local.yml
+
+# Keep settings.ddev.php and settings.ddev.redis.php
+!/web/sites/default/settings.ddev.php
+!/web/sites/default/settings.ddev.redis.php
+
+# Ignore private files, backups
+/private/
+*.sql
+*.tar.gz
+
+# IDE and OS files
+.DS_Store
+.idea/
+.vscode/

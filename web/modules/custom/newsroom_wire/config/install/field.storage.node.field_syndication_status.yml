@@ -1,0 +1,28 @@
+langcode: pl
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_syndication_status
+field_name: field_syndication_status
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    - value: pending
+      label: Oczekuje
+    - value: queued
+      label: W kolejce
+    - value: dispatched
+      label: Wysłano do subskrybentów
+    - value: failed
+      label: Błąd wysyłki
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

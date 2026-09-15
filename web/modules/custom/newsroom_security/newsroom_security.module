@@ -1,0 +1,44 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_entity_insert().
+ */
+function newsroom_security_entity_insert(EntityInterface $entity): void {
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'wire_dispatch') {
+    return;
+  }
+
+  $toState = $entity->hasField('moderation_state') && !$entity->get('moderation_state')->isEmpty()
+    ? (string) $entity->get('moderation_state')->value
+    : ($entity->isPublished() ? 'published' : 'draft');
+
+  \Drupal::service('newsroom_security.audit_service')->record($entity, 'insert', '', $toState);
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function newsroom_security_entity_update(EntityInterface $entity): void {
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'wire_dispatch') {
+    return;
+  }
+
+  $toState = $entity->hasField('moderation_state') && !$entity->get('moderation_state')->isEmpty()
+    ? (string) $entity->get('moderation_state')->value
+    : ($entity->isPublished() ? 'published' : 'draft');
+
+  $fromState = '';
+  if (isset($entity->original) && $entity->original instanceof NodeInterface) {
+    $fromState = $entity->original->hasField('moderation_state') && !$entity->original->get('moderation_state')->isEmpty()
+      ? (string) $entity->original->get('moderation_state')->value
+      : ($entity->original->isPublished() ? 'published' : 'draft');
+  }
+
+  $action = ($fromState !== $toState) ? 'transition' : 'update';
+  \Drupal::service('newsroom_security.audit_service')->record($entity, $action, $fromState, $toState);
+}

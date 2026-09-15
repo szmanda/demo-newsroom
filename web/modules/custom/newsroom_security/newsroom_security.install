@@ -1,0 +1,96 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_schema().
+ */
+function newsroom_security_schema(): array {
+  $schema['newsroom_audit_log'] = [
+    'description' => 'Tamper-evident cryptographic audit log for wire dispatches and state transitions.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => true,
+        'not null' => true,
+        'description' => 'Primary Key: Unique audit record ID.',
+      ],
+      'nid' => [
+        'type' => 'int',
+        'unsigned' => true,
+        'not null' => true,
+        'default' => 0,
+        'description' => 'Node ID of the wire dispatch.',
+      ],
+      'vid' => [
+        'type' => 'int',
+        'unsigned' => true,
+        'not null' => true,
+        'default' => 0,
+        'description' => 'Revision ID of the wire dispatch.',
+      ],
+      'actor_uid' => [
+        'type' => 'int',
+        'unsigned' => true,
+        'not null' => true,
+        'default' => 0,
+        'description' => 'UID of the user performing the action.',
+      ],
+      'ip_address' => [
+        'type' => 'varchar',
+        'length' => 45,
+        'not null' => true,
+        'default' => '',
+        'description' => 'Client IP address.',
+      ],
+      'timestamp' => [
+        'type' => 'int',
+        'not null' => true,
+        'default' => 0,
+        'description' => 'Unix timestamp of the action.',
+      ],
+      'from_state' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => true,
+        'default' => '',
+        'description' => 'Previous moderation state.',
+      ],
+      'to_state' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => true,
+        'default' => '',
+        'description' => 'New moderation state.',
+      ],
+      'action' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => true,
+        'default' => 'update',
+        'description' => 'Action type: insert, update, transition, delete.',
+      ],
+      'content_sha256' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => true,
+        'default' => '',
+        'description' => 'SHA-256 cryptographic hash of the content payload.',
+      ],
+      'previous_hash' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => true,
+        'default' => '',
+        'description' => 'Cryptographic linkage to preceding audit record.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'nid_timestamp' => ['nid', 'timestamp'],
+      'actor_uid' => ['actor_uid'],
+    ],
+  ];
+
+  return $schema;
+}

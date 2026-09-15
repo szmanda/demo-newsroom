@@ -1,0 +1,20 @@
+langcode: pl
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_lead
+    - node.type.wire_dispatch
+  module:
+    - text
+id: node.wire_dispatch.field_lead
+field_name: field_lead
+entity_type: node
+bundle: wire_dispatch
+label: Lead
+description: 'Zwięzłe wprowadzenie / lead depeszy agencyjnej.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: text_long

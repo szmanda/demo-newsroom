@@ -1,0 +1,11 @@
+langcode: pl
+status: true
+dependencies: {}
+third_party_settings: {}
+name: 'Depesza Agencyjna'
+type: wire_dispatch
+description: 'Wysokowydajna depesza agencyjna z systemem priorytetów, embargiem i syndykacją.'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: true

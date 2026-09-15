@@ -1,0 +1,92 @@
+langcode: pl
+status: true
+dependencies:
+  module:
+    - content_moderation
+id: editorial
+label: 'Editorial Workflow (Redakcja PAP)'
+type: content_moderation
+type_settings:
+  states:
+    draft:
+      label: Szkic
+      weight: -5
+      published: false
+      default_revision: false
+    review:
+      label: 'W recenzji (In Review)'
+      weight: -4
+      published: false
+      default_revision: false
+    approved:
+      label: 'Zatwierdzona (Editor Approved)'
+      weight: -3
+      published: false
+      default_revision: false
+    scheduled:
+      label: 'Embargo / Zaplanowana'
+      weight: -2
+      published: false
+      default_revision: false
+    published:
+      label: 'Opublikowana (Wire Live)'
+      weight: 0
+      published: true
+      default_revision: true
+    archived:
+      label: Zarchiwizowana
+      weight: 2
+      published: false
+      default_revision: true
+  transitions:
+    create_new_draft:
+      label: 'Utwórz szkic'
+      from:
+        - draft
+        - review
+      to: draft
+      weight: 0
+    submit_to_review:
+      label: 'Skieruj do recenzji'
+      from:
+        - draft
+      to: review
+      weight: 1
+    approve_dispatch:
+      label: 'Zatwierdź depeszę'
+      from:
+        - review
+      to: approved
+      weight: 2
+    schedule_dispatch:
+      label: 'Zaplanuj / Nałóż embargo'
+      from:
+        - approved
+        - review
+      to: scheduled
+      weight: 3
+    publish:
+      label: 'Publikuj na drut PAP'
+      from:
+        - approved
+        - scheduled
+        - review
+        - published
+      to: published
+      weight: 4
+    archive:
+      label: Archiwizuj
+      from:
+        - published
+        - scheduled
+      to: archived
+      weight: 5
+    restore_to_draft:
+      label: 'Przywróć do szkicu'
+      from:
+        - archived
+      to: draft
+      weight: 6
+  entity_types:
+    node:
+      - wire_dispatch

@@ -1,0 +1,18 @@
+newsroom_api.latest:
+  path: '/api/v1/wire/latest'
+  defaults:
+    _controller: '\Drupal\newsroom_api\Controller\WireApiController::latest'
+    _title: 'Latest Wire Dispatches'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+newsroom_api.item:
+  path: '/api/v1/wire/{id}'
+  defaults:
+    _controller: '\Drupal\newsroom_api\Controller\WireApiController::item'
+    _title: 'Wire Dispatch Item'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+    id: '^[0-9]+$'

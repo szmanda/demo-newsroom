@@ -1,0 +1,9 @@
+services:
+  newsroom_api.normalizer:
+    class: Drupal\newsroom_api\Normalizer\WireDispatchNormalizer
+    arguments: ['@entity_type.manager', '@date.formatter']
+
+  newsroom_api.response_subscriber:
+    class: Drupal\newsroom_api\EventSubscriber\WireApiResponseSubscriber
+    tags:
+      - { name: event_subscriber }

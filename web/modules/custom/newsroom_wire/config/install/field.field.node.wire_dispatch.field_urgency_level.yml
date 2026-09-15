@@ -1,0 +1,21 @@
+langcode: pl
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_urgency_level
+    - node.type.wire_dispatch
+  module:
+    - options
+id: node.wire_dispatch.field_urgency_level
+field_name: field_urgency_level
+entity_type: node
+bundle: wire_dispatch
+label: 'Poziom pilności'
+description: 'Priorytet depeszy agencyjnej.'
+required: true
+translatable: false
+default_value:
+  - value: ROUTINE
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -1,0 +1,10 @@
+services:
+  newsroom_core.commands:
+    class: Drupal\newsroom_core\Commands\NewsroomCommands
+    arguments:
+      - '@entity_type.manager'
+      - '@queue'
+      - '@plugin.manager.queue_worker'
+      - '@newsroom_security.audit_service'
+    tags:
+      - { name: drush.command }

@@ -1,0 +1,7 @@
+name: 'Newsroom Headless API'
+type: module
+description: 'High-throughput headless JSON API for downstream syndication, clients, and frontend apps.'
+core_version_requirement: ^10 || ^11
+package: 'Newsroom'
+dependencies:
+  - newsroom_wire:newsroom_wire

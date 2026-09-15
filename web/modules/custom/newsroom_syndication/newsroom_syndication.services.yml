@@ -1,0 +1,14 @@
+services:
+  logger.channel.newsroom_syndication:
+    parent: logger.channel_base
+    arguments: ['newsroom_syndication']
+
+  newsroom_syndication.client:
+    class: Drupal\newsroom_syndication\Service\SyndicationClient
+    arguments: ['@http_client', '@logger.channel.newsroom_syndication']
+
+  newsroom_syndication.subscriber:
+    class: Drupal\newsroom_syndication\EventSubscriber\WirePublishedSubscriber
+    arguments: ['@queue', '@logger.channel.newsroom_syndication', '@entity_type.manager']
+    tags:
+      - { name: event_subscriber }

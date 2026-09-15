@@ -1,0 +1,14 @@
+services:
+  logger.channel.newsroom_core:
+    parent: logger.channel_base
+    arguments: ['newsroom_core']
+
+  newsroom_core.varnish_purger:
+    class: Drupal\newsroom_core\Service\VarnishPurgerService
+    arguments: ['@http_client', '@logger.channel.newsroom_core']
+
+  newsroom_core.cache_tags_invalidator:
+    class: Drupal\newsroom_core\EventSubscriber\NewsroomCacheTagsInvalidator
+    arguments: ['@newsroom_core.varnish_purger']
+    tags:
+      - { name: cache_tags_invalidator }

@@ -1,0 +1,8 @@
+langcode: pl
+status: true
+dependencies: {  }
+vid: wire_category
+name: 'Kategorie Serwisu'
+description: 'Kategorie tematyczne depesz agencyjnych PAP'
+weight: 0
+new_revision: false

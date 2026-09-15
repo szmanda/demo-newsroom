@@ -1,0 +1,48 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\newsroom_syndication\Event\NewsroomEvents;
+use Drupal\newsroom_syndication\Event\WirePublishedEvent;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_entity_insert().
+ */
+function newsroom_syndication_entity_insert(EntityInterface $entity): void {
+  _newsroom_syndication_check_publish_event($entity);
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function newsroom_syndication_entity_update(EntityInterface $entity): void {
+  _newsroom_syndication_check_publish_event($entity);
+}
+
+/**
+ * Helper to determine if a wire dispatch reached published state.
+ */
+function _newsroom_syndication_check_publish_event(EntityInterface $entity): void {
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'wire_dispatch') {
+    return;
+  }
+
+  $currentModeration = $entity->hasField('moderation_state') && !$entity->get('moderation_state')->isEmpty()
+    ? (string) $entity->get('moderation_state')->value
+    : ($entity->isPublished() ? 'published' : 'draft');
+
+  $previousModeration = '';
+  if (isset($entity->original) && $entity->original instanceof NodeInterface) {
+    $previousModeration = $entity->original->hasField('moderation_state') && !$entity->original->get('moderation_state')->isEmpty()
+      ? (string) $entity->original->get('moderation_state')->value
+      : ($entity->original->isPublished() ? 'published' : 'draft');
+  }
+
+  // If newly published or transitioned to published state.
+  if ($currentModeration === 'published' && ($previousModeration !== 'published' || !isset($entity->original))) {
+    $event = new WirePublishedEvent($entity, $previousModeration, $currentModeration);
+    \Drupal::service('event_dispatcher')->dispatch($event, NewsroomEvents::WIRE_PUBLISHED);
+  }
+}

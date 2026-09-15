@@ -1,0 +1,38 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\taxonomy\Entity\Term;
+
+/**
+ * Implements hook_install().
+ */
+function newsroom_wire_install(): void {
+  // Create default categories for PAP wire.
+  $categories = [
+    'Polityka' => 'Wiadomości polityczne, rządowe i parlamentarne',
+    'Gospodarka' => 'Rynki finansowe, makroekonomia, spółki i energetyka',
+    'Świat' => 'Wydarzenia międzynarodowe i dyplomacja',
+    'Sport' => 'Wydarzenia sportowe, relacje na żywo i wyniki',
+    'Bezpieczeństwo' => 'Obronność, cyberbezpieczeństwo i służby mundurowe',
+  ];
+
+  $weight = 0;
+  foreach ($categories as $name => $description) {
+    $existing = \Drupal::entityTypeManager()
+      ->getStorage('taxonomy_term')
+      ->loadByProperties(['vid' => 'wire_category', 'name' => $name]);
+
+    if (empty($existing)) {
+      Term::create([
+        'vid' => 'wire_category',
+        'name' => $name,
+        'description' => [
+          'value' => $description,
+          'format' => 'plain_text',
+        ],
+        'weight' => $weight++,
+      ])->save();
+    }
+  }
+}

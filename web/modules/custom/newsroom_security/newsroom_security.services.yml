@@ -1,0 +1,8 @@
+services:
+  logger.channel.newsroom_security:
+    parent: logger.channel_base
+    arguments: ['newsroom_security']
+
+  newsroom_security.audit_service:
+    class: Drupal\newsroom_security\Service\AuditLogService
+    arguments: ['@database', '@current_user', '@request_stack', '@logger.channel.newsroom_security']

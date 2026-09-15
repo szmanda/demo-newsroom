@@ -1,0 +1,8 @@
+name: 'Newsroom Event-Driven Syndication'
+type: module
+description: 'Event-driven webhook dispatcher and Queue API worker for downstream agency subscriber syndication.'
+core_version_requirement: ^10 || ^11
+package: 'Newsroom'
+dependencies:
+  - newsroom_wire:newsroom_wire
+  - newsroom_api:newsroom_api
