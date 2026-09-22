@@ -16,3 +16,13 @@ newsroom_api.item:
   requirements:
     _access: 'TRUE'
     id: '^[0-9]+$'
+
+newsroom_api.create:
+  path: '/api/v1/wire/create'
+  defaults:
+    _controller: '\Drupal\newsroom_api\Controller\WireApiController::publish'
+    _title: 'Create Wire Dispatch'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+

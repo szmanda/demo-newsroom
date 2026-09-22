@@ -10,6 +10,7 @@ use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\newsroom_api\Normalizer\WireDispatchNormalizer;
+use Drupal\node\Entity\Node;
 use Drupal\node\NodeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -159,6 +160,117 @@ final class WireApiController extends ControllerBase {
     $response->headers->set('Cache-Control', 'public, max-age=60, s-maxage=3600, stale-while-revalidate=60');
 
     return $response;
+  }
+
+  /**
+   * POST /api/v1/wire/create
+   */
+  public function publish(Request $request): Response {
+    $expectedApiKey = getenv('NEWSROOM_API_KEY') ?: 'secret-pap-editorial-key';
+    $apiKey = $request->headers->get('X-Newsroom-Api-Key');
+    $authHeader = $request->headers->get('Authorization', '');
+
+    if (empty($apiKey) && str_starts_with($authHeader, 'Bearer ')) {
+      $apiKey = substr($authHeader, 7);
+    }
+
+    if (empty($apiKey) || !hash_equals((string) $expectedApiKey, (string) $apiKey)) {
+      return $this->problemResponse(
+        'https://pap.pl/errors/unauthorized',
+        'Unauthorized',
+        Response::HTTP_UNAUTHORIZED,
+        'Invalid or missing editorial API key in X-Newsroom-Api-Key or Authorization header.',
+        $request->getRequestUri()
+      );
+    }
+
+    $rawContent = $request->getContent();
+    $data = json_decode($rawContent, TRUE);
+    if (!is_array($data)) {
+      return $this->problemResponse(
+        'https://pap.pl/errors/invalid-payload',
+        'Invalid JSON Payload',
+        Response::HTTP_BAD_REQUEST,
+        'The request body must be valid JSON.',
+        $request->getRequestUri()
+      );
+    }
+
+    $title = trim((string) ($data['title'] ?? ''));
+    if ($title === '') {
+      return $this->problemResponse(
+        'https://pap.pl/errors/validation-failed',
+        'Validation Failed',
+        Response::HTTP_UNPROCESSABLE_ENTITY,
+        'The "title" field is required.',
+        $request->getRequestUri()
+      );
+    }
+
+    $urgency = strtoupper(trim((string) ($data['urgency_level'] ?? 'ROUTINE')));
+    $validUrgencies = ['FLASH', 'URGENT', 'ROUTINE'];
+    if (!in_array($urgency, $validUrgencies, TRUE)) {
+      return $this->problemResponse(
+        'https://pap.pl/errors/invalid-urgency',
+        'Invalid Urgency Level',
+        Response::HTTP_BAD_REQUEST,
+        sprintf('Urgency must be one of: %s', implode(', ', $validUrgencies)),
+        $request->getRequestUri()
+      );
+    }
+
+    $categoryId = NULL;
+    if (!empty($data['category'])) {
+      if (is_numeric($data['category'])) {
+        $categoryId = (int) $data['category'];
+      }
+      else {
+        $terms = $this->entityTypeManagerService->getStorage('taxonomy_term')
+          ->loadByProperties(['vid' => 'wire_category', 'name' => trim((string) $data['category'])]);
+        if (!empty($terms)) {
+          $term = reset($terms);
+          $categoryId = (int) $term->id();
+        }
+      }
+    }
+
+    $lead = trim((string) ($data['lead'] ?? ''));
+    $body = trim((string) ($data['body'] ?? ''));
+    $signature = trim((string) ($data['author_signature'] ?? '(PAP) desk'));
+
+    $nodeValues = [
+      'type' => 'wire_dispatch',
+      'title' => $title,
+      'field_lead' => [
+        'value' => $lead,
+        'format' => 'plain_text',
+      ],
+      'body' => [
+        'value' => $body,
+        'format' => 'plain_text',
+      ],
+      'field_urgency_level' => $urgency,
+      'field_author_signature' => $signature,
+      'moderation_state' => 'published',
+      'status' => 1,
+    ];
+
+    if ($categoryId !== NULL) {
+      $nodeValues['field_category'] = ['target_id' => $categoryId];
+    }
+
+    if (!empty($data['embargo_until'])) {
+      $nodeValues['field_embargo_until'] = (string) $data['embargo_until'];
+    }
+
+    $node = Node::create($nodeValues);
+    $node->save();
+
+    // Invalidate list cache tag so Varnish / API feeds immediately reflect the new dispatch.
+    Cache::invalidateTags(['node_list:wire_dispatch']);
+
+    $normalized = $this->normalizer->normalize($node);
+    return new JsonResponse(['data' => $normalized], Response::HTTP_CREATED);
   }
 
   /**
