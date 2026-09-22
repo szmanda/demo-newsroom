@@ -98,3 +98,25 @@ curl -i http://demo-newsroom.ddev.site/api/v1/wire/1
 # 4. Test RFC 7807 Error Handling (Invalid Parameter)
 curl -i "http://demo-newsroom.ddev.site/api/v1/wire/latest?urgency=INVALID"
 ```
+
+---
+
+## 💻 Modern React Frontend (`frontend/`)
+
+A high-performance, agency wire terminal built with **React 19**, **Vite**, **TypeScript**, **Tailwind CSS**, and **TanStack Query**.
+
+### Features:
+- **Real-Time Agency Ticker**: Background revalidation and live stream heartbeat indicator with auto-polling toggle.
+- **Urgency Filtering & Search**: Instant filtering by `FLASH` (błyskawiczne), `URGENT` (pilne), and `ROUTINE` (standardowe), plus category and full-text search.
+- **Split Wire Terminal View**: Left stream pane with relative timestamps and right inspector pane with formatted lead/body, author signature, embargo notices, and SHA-256 tamper-evident audit badge.
+- **Rapid Publishing Dock**: Compose and dispatch news with keyboard shortcuts (`Ctrl+Enter` to dispatch, `N` for new dispatch, `J`/`K` or `Down`/`Up` to cycle stories).
+- **Optimistic Updates**: Immediate insertion into the feed stream before server round-trip confirmation.
+
+### Running the Frontend:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open **`http://localhost:5173`** in your browser. All API requests are proxied directly to the DDEV backend with editorial secret authentication (`X-Newsroom-Api-Key`).
+
