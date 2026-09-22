@@ -1,122 +1,172 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState, useMemo, useEffect } from 'react';
+import { Header } from './components/Header';
+import { FlashAlertTicker } from './components/FlashAlertTicker';
+import { FilterBar } from './components/FilterBar';
+import { WireFeed } from './components/WireFeed';
+import { DispatchDetail } from './components/DispatchDetail';
+import { PublishModal } from './components/PublishModal';
+import { useWireDispatches } from './hooks/useWireDispatches';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import type { WireDispatch } from './types/wire';
 
-function App() {
-  const [count, setCount] = useState(0)
+export function App() {
+  const [isLive, setIsLive] = useState(true);
+  const [selectedUrgency, setSelectedUrgency] = useState<string>('ALL');
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDispatch, setSelectedDispatch] = useState<WireDispatch | null>(null);
+  const [isPublishOpen, setIsPublishOpen] = useState(false);
+
+  // Fetch dispatches with server-side filters and background polling
+  const { data, isLoading, isError, error } = useWireDispatches(
+    {
+      urgency: selectedUrgency !== 'ALL' ? selectedUrgency : undefined,
+      category: selectedCategory !== 'ALL' ? selectedCategory : undefined,
+      limit: 50,
+    },
+    isLive
+  );
+
+  const dispatches = data?.data || [];
+
+  // Client-side search filtering
+  const filteredDispatches = useMemo(() => {
+    if (!searchQuery.trim()) return dispatches;
+    const q = searchQuery.toLowerCase();
+    return dispatches.filter(
+      (d) =>
+        d.title.toLowerCase().includes(q) ||
+        d.lead.toLowerCase().includes(q) ||
+        d.body.toLowerCase().includes(q) ||
+        d.author_signature.toLowerCase().includes(q)
+    );
+  }, [dispatches, searchQuery]);
+
+  // Find latest flash dispatch for breaking alert ticker
+  const latestFlash = useMemo(() => {
+    return dispatches.find((d) => d.urgency_level === 'FLASH' || d.is_flash) || null;
+  }, [dispatches]);
+
+  // Keep selection synchronized or auto-select first item on initial load
+  useEffect(() => {
+    if (filteredDispatches.length > 0) {
+      if (!selectedDispatch) {
+        setSelectedDispatch(filteredDispatches[0]);
+      } else {
+        // Keep updated item from new fetch
+        const match = filteredDispatches.find((d) => d.id === selectedDispatch.id);
+        if (match) {
+          setSelectedDispatch(match);
+        }
+      }
+    }
+  }, [filteredDispatches, selectedDispatch]);
+
+  // Keyboard navigation handlers
+  const handleNextDispatch = () => {
+    if (filteredDispatches.length === 0) return;
+    const currentIndex = selectedDispatch
+      ? filteredDispatches.findIndex((d) => d.id === selectedDispatch.id)
+      : -1;
+    const nextIndex =
+      currentIndex < filteredDispatches.length - 1 ? currentIndex + 1 : 0;
+    setSelectedDispatch(filteredDispatches[nextIndex]);
+  };
+
+  const handlePrevDispatch = () => {
+    if (filteredDispatches.length === 0) return;
+    const currentIndex = selectedDispatch
+      ? filteredDispatches.findIndex((d) => d.id === selectedDispatch.id)
+      : 0;
+    const prevIndex =
+      currentIndex > 0 ? currentIndex - 1 : filteredDispatches.length - 1;
+    setSelectedDispatch(filteredDispatches[prevIndex]);
+  };
+
+  useKeyboardShortcuts({
+    onNewDispatch: () => setIsPublishOpen(true),
+    onNextDispatch: handleNextDispatch,
+    onPrevDispatch: handlePrevDispatch,
+    onClose: () => {
+      if (isPublishOpen) {
+        setIsPublishOpen(false);
+      }
+    },
+    isModalOpen: isPublishOpen,
+  });
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="h-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans select-none">
+      {/* 1. Header */}
+      <Header
+        isLive={isLive}
+        onToggleLive={() => setIsLive((prev) => !prev)}
+        onOpenPublish={() => setIsPublishOpen(true)}
+        dispatchesCount={filteredDispatches.length}
+      />
 
-      <div className="ticks"></div>
+      {/* 2. Breaking News FLASH Ticker */}
+      <FlashAlertTicker
+        flashDispatch={latestFlash}
+        onSelect={(flash) => setSelectedDispatch(flash)}
+      />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      {/* 3. Filter and Search Bar */}
+      <FilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedUrgency={selectedUrgency}
+        onUrgencyChange={setSelectedUrgency}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+      />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* 4. Split Terminal Layout */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Column: Chronological Wire Feed */}
+        <div className="w-full sm:w-[380px] md:w-[420px] lg:w-[460px] border-r border-slate-800 bg-slate-950/40 flex flex-col shrink-0 h-full">
+          <div className="px-4 py-2 border-b border-slate-800/80 bg-slate-900/30 flex items-center justify-between text-[11px] font-mono text-slate-400">
+            <span>STRUMIEŃ DEPESZ</span>
+            <span>
+              {filteredDispatches.length} {filteredDispatches.length === 1 ? 'pozycja' : 'pozycji'}
+            </span>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {isError ? (
+              <div className="p-6 text-center text-red-400 text-xs space-y-2">
+                <p>Nie udało się pobrać depesz z backendu.</p>
+                <p className="text-slate-500 font-mono text-[10px]">
+                  {error instanceof Error ? error.message : 'Błąd połączenia'}
+                </p>
+              </div>
+            ) : (
+              <WireFeed
+                dispatches={filteredDispatches}
+                selectedDispatch={selectedDispatch}
+                onSelectDispatch={(d) => setSelectedDispatch(d)}
+                isLoading={isLoading}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Full Reading Inspector */}
+        <main className="flex-1 hidden sm:block bg-slate-900/20 h-full overflow-hidden">
+          <DispatchDetail dispatch={selectedDispatch} />
+        </main>
+      </div>
+
+      {/* 5. Publish Dispatch Modal */}
+      <PublishModal
+        isOpen={isPublishOpen}
+        onClose={() => setIsPublishOpen(false)}
+        onSuccess={(created) => {
+          setSelectedDispatch(created);
+        }}
+      />
+    </div>
+  );
 }
 
-export default App
+export default App;

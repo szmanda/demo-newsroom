@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Radio, Plus, Key, Keyboard, Pause, Play, Check } from 'lucide-react';
+import { Radio, Plus, Key, Pause, Play, Check } from 'lucide-react';
 
 interface HeaderProps {
   isLive: boolean;

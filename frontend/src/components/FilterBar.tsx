@@ -1,6 +1,5 @@
 import React from 'react';
 import { Search, X, Flame, AlertCircle, Clock } from 'lucide-react';
-import type { UrgencyLevel } from '../types/wire';
 
 export const CATEGORIES = [
   'Wszystkie',

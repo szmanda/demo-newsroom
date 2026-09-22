@@ -1,5 +1,5 @@
 import React from 'react';
-import { Newspaper, Inbox } from 'lucide-react';
+import { Inbox } from 'lucide-react';
 import { WireCard } from './WireCard';
 import type { WireDispatch } from '../types/wire';
 

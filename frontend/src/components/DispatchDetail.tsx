@@ -6,7 +6,6 @@ import {
   ShieldCheck,
   Copy,
   Check,
-  Share2,
   Calendar,
   Lock,
   FileText,
